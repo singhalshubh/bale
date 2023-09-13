@@ -338,7 +338,7 @@ local_send(porter_t* self, int dest, uint64_t level, size_t n_bytes,
     buffer_t* remote = porter_inbuf(self, rank, level);
     //uint64_t index = (rank << self->abundance) + level;
     //remote += index * self->buffer_stride;
-    shmem_putmem(remote, buffer, n_bytes, pe);
+    shmem_putmem(remote, buffer, n_bytes, dest);
     //memcpy(remote, buffer, n_bytes);
     self->send_count++;
     self->byte_count += n_bytes;
