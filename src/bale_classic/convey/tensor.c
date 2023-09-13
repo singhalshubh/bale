@@ -350,7 +350,7 @@ vector_new(convey_t* base, size_t capacity, size_t n_procs,
     for (int i = 0; i < n_procs; i++)
       friends[i] = i;
     if (n_procs <= n_local)
-      //options |= porter_opt_LOCAL;
+      options |= porter_opt_LOCAL;
     vector->porters[0] = porter_new(n_procs, friends, my_proc, t, capacity, n_buffers,
                                     alloc, options, CONVEY_SEND_1);
   }
@@ -405,7 +405,7 @@ matrix_new(convey_t* base, size_t capacity, size_t n_procs,
       ? porter_new(n_rows, friends[1], me[1], t, capacity, n_buffers, alloc,
                options, CONVEY_SEND_1)
       : porter_new(n_local, friends[0], me[0], 4, capacity, n_buffers, alloc,
-               options, CONVEY_SEND_0);
+               options | porter_opt_LOCAL, CONVEY_SEND_0);
   }    
 
   if (! (matrix->porters[0] && matrix->porters[1])) {

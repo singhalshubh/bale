@@ -519,11 +519,9 @@ porter_new(int n, int32_t relative[n], int my_rank,
     return NULL;
   const bool dynamic = options & convey_opt_DYNAMIC;
   const bool steady = options & convey_opt_PROGRESS;
-  // const bool local = options & porter_opt_LOCAL;
-  bool local = false;
-  bool blocking = false;
+  const bool local = options & porter_opt_LOCAL;
   const bool compress = options & convey_opt_COMPRESS;
-  // const bool blocking = options & convey_opt_BLOCKING;
+  const bool blocking = options & convey_opt_BLOCKING;
 
   put_porter_t* putp = malloc(sizeof(put_porter_t));
   if (putp == NULL)
