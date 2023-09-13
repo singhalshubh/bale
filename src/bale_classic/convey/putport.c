@@ -329,10 +329,9 @@ local_send(porter_t* self, int dest, uint64_t level, size_t n_bytes,
            buffer_t* buffer, uint64_t signal)
 {
   const int rank = self->my_rank;
-  int pe = putp->friends[dest];
   const nbrhood_t* nbrhood = ((put_porter_t*)self)->extra;
   put_porter_t* putp = (put_porter_t*) self;
-
+  int pe = putp->friends[dest];
   // Need local address of remote receive buffers
   if (n_bytes > 0) {
     // char* remote = nbrhood->buffer_ptrs[dest];
