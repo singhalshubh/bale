@@ -329,6 +329,7 @@ local_send(porter_t* self, int dest, uint64_t level, size_t n_bytes,
            buffer_t* buffer, uint64_t signal)
 {
   const int rank = self->my_rank;
+  int pe = putp->friends[dest];
   const nbrhood_t* nbrhood = ((put_porter_t*)self)->extra;
   put_porter_t* putp = (put_porter_t*) self;
 
@@ -338,14 +339,14 @@ local_send(porter_t* self, int dest, uint64_t level, size_t n_bytes,
     buffer_t* remote = porter_inbuf(self, rank, level);
     //uint64_t index = (rank << self->abundance) + level;
     //remote += index * self->buffer_stride;
-    shmem_putmem(remote, buffer, n_bytes, dest);
+    shmem_putmem(remote, buffer, n_bytes, pe);
     //memcpy(remote, buffer, n_bytes);
     self->send_count++;
     self->byte_count += n_bytes;
   }
 
   // Need local address of remote 'received' array
-  shmem_put64((uint64_t*) &putp->received[rank], &signal, 1, dest);
+  shmem_put64((uint64_t*) &putp->received[rank], &signal, 1, pe);
   //atomic_uint64_t* notify = nbrhood->signal_ptrs[dest] + rank;
   //*notify = signal;  // atomic_store
   return true;
