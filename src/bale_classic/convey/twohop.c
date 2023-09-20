@@ -297,7 +297,7 @@ column_advance(twohop_t* twohop)
     else
       shmemx_team_alltoallv(twohop->col_recv_bufs, twohop->col_offsets, twohop->recv_sizes,
                             twohop->col_send_bufs, twohop->col_offsets, twohop->send_sizes,
-                            twohop->col_team, twohop->col_sync[twohop->col_flip]);
+                            twohop->col_team);//, twohop->col_sync[twohop->col_flip]);
     twohop->col_flip ^= 1;
 #else
     int error = MPI_Alltoall(twohop->send_sizes, 1, MPI_INT,

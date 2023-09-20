@@ -9,6 +9,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <shmemx.h>
 #include "porter_impl.h"
 #include "private.h"
 
@@ -330,24 +331,20 @@ local_send(porter_t* self, int dest, uint64_t level, size_t n_bytes,
 {
   const int rank = self->my_rank;
   const nbrhood_t* nbrhood = ((put_porter_t*)self)->extra;
-  put_porter_t* putp = (put_porter_t*) self;
-  int pe = putp->friends[dest];
+
   // Need local address of remote receive buffers
   if (n_bytes > 0) {
-    // char* remote = nbrhood->buffer_ptrs[dest];
-    buffer_t* remote = porter_inbuf(self, rank, level);
-    //uint64_t index = (rank << self->abundance) + level;
-    //remote += index * self->buffer_stride;
-    shmem_putmem(remote, buffer, n_bytes, pe);
-    //memcpy(remote, buffer, n_bytes);
+    char* remote = nbrhood->buffer_ptrs[dest];
+    uint64_t index = (rank << self->abundance) + level;
+    remote += index * self->buffer_stride;
+    memcpy(remote, buffer, n_bytes);
     self->send_count++;
     self->byte_count += n_bytes;
   }
 
   // Need local address of remote 'received' array
-  shmem_put64((uint64_t*) &putp->received[rank], &signal, 1, pe);
-  //atomic_uint64_t* notify = nbrhood->signal_ptrs[dest] + rank;
-  //*notify = signal;  // atomic_store
+  atomic_uint64_t* notify = nbrhood->signal_ptrs[dest] + rank;
+  *notify = signal;  // atomic_store
   return true;
 }
 
@@ -432,10 +429,10 @@ nonblock_send(porter_t* self, int dest, uint64_t level, size_t n_bytes,
     const int pe = putp->friends[dest];
     buffer_t* remote = porter_inbuf(self, rank, level);
     DEBUG_PRINT("%zu bytes to %d, signal = %lu\n", buffer->limit - buffer->start, pe, signal);
-    shmem_putmem(remote, buffer, n_bytes, pe);
+    shmemx_putmem_signal_nb(remote, buffer, n_bytes, (uint64_t*) &putp->received[rank], signal, 1, NULL);
+    //shmem_putmem_nbi(remote, buffer, n_bytes, pe);
     self->send_count++;
     self->byte_count += n_bytes;
-    shmem_put64((uint64_t*) &putp->received[rank], &signal, 1, putp->friends[dest]);
   }
   else {
     DEBUG_PRINT("0 bytes to %d, signal = %lu\n", putp->friends[dest], signal);
@@ -449,9 +446,10 @@ nonblock_send(porter_t* self, int dest, uint64_t level, size_t n_bytes,
 static bool
 nonblock_progress(porter_t* self, int dest)
 {
-  // // Decide whether it's time to force delivery and send signals.
-  // // Do this when we have emitted half of our buffers on this channel.
-  // // [1 buffer => diff > 0; 2 buffers => diff > 0; 4 buffers => diff > 1]
+  mpp_quiet();
+  // Decide whether it's time to force delivery and send signals.
+  // Do this when we have emitted half of our buffers on this channel.
+  // [1 buffer => diff > 0; 2 buffers => diff > 0; 4 buffers => diff > 1]
   // if (dest >= 0) {
   //   uint64_t limit = ((UINT64_C(1) << self->abundance) - 1) >> 1;
   //   channel_t* channel = &self->channels[dest];

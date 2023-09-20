@@ -413,7 +413,7 @@ convey_parameters(size_t max_bytes, size_t n_local,
     }
 
   *capacity_ = capacity;
-  *n_buffers_ = n_buffers;
+  *n_buffers_ = 4;
   *sync_ = sync;
   *order_ = order;
 }
