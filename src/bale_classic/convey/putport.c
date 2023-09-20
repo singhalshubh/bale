@@ -440,28 +440,28 @@ nonblock_send(porter_t* self, int dest, uint64_t level, size_t n_bytes,
 
   // uint64_t* inflight = putp->extra;
   // inflight[dest] = signal;
-  return true;
+  return false;
 }
 
 static bool
 nonblock_progress(porter_t* self, int dest)
 {
-  mpp_quiet();
+  
   // Decide whether it's time to force delivery and send signals.
   // Do this when we have emitted half of our buffers on this channel.
   // [1 buffer => diff > 0; 2 buffers => diff > 0; 4 buffers => diff > 1]
-  // if (dest >= 0) {
-  //   uint64_t limit = ((UINT64_C(1) << self->abundance) - 1) >> 1;
-  //   channel_t* channel = &self->channels[dest];
-  //   if (channel->emitted <= channel->delivered + limit &&
-  //       channel->urgent <= channel->delivered &&
-  //       (self->waiting == NULL || self->waiting[dest] < PATIENCE))
-  //     return false;
-  // }
+  if (dest >= 0) {
+    uint64_t limit = ((UINT64_C(1) << self->abundance) - 1) >> 1;
+    channel_t* channel = &self->channels[dest];
+    if (channel->emitted <= channel->delivered + limit &&
+        channel->urgent <= channel->delivered &&
+        (self->waiting == NULL || self->waiting[dest] < PATIENCE))
+      return false;
+  }
 
-  // // Force delivery of all puts
-  // mpp_quiet();
-  // self->sync_count++;
+  // Force delivery of all puts
+  mpp_quiet();
+  self->sync_count++;
 
   // const int n = self->n_ranks;
   // const int rank = self->my_rank;
