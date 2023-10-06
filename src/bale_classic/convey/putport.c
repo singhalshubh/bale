@@ -272,15 +272,15 @@ standard_send(porter_t* self, int dest, uint64_t level, size_t n_bytes,
 static bool
 standard_progress(porter_t* self, int dest)
 {
-  // if (dest >= 0) {
-  //   uint64_t limit = ((UINT64_C(1) << self->abundance) - 1) >> 1;
-  //   channel_t* channel = &self->channels[dest];
-  //   if (channel->emitted <= channel->delivered + limit &&
-  //       channel->urgent <= channel->delivered &&
-  //       (self->waiting == NULL || self->waiting[dest] < PATIENCE))
-  //     return false;
-  // }
-  // mpp_quiet();
+  if (dest >= 0) {
+    uint64_t limit = ((UINT64_C(1) << self->abundance) - 1) >> 1;
+    channel_t* channel = &self->channels[dest];
+    if (channel->emitted <= channel->delivered + limit &&
+        channel->urgent <= channel->delivered &&
+        (self->waiting == NULL || self->waiting[dest] < PATIENCE))
+      return false;
+  }
+  mpp_quiet();
   return true;
 }
 
@@ -349,8 +349,10 @@ local_send(porter_t* self, int dest, uint64_t level, size_t n_bytes,
     //remote += index * self->buffer_stride;
     //memcpy(remote, buffer, n_bytes);
     buffer_t* remote = porter_inbuf(self, rank, level);
-    shmemx_putmem_signal_nb(remote, buffer, n_bytes, (uint64_t*) &putp->received[rank], signal, pe, NULL);      
-    shmem_quiet();
+    shmemx_putmem_signal_nb(remote, buffer, n_bytes, (uint64_t*) &putp->received[rank], signal, pe, NULL);
+    FILE *fp = fopen("a.txt", "a");
+    fprintf(fp, "source: %d, pe: %d\n", shmem_my_pe(), pe);
+    fclose(fp);
     self->send_count++;
     self->byte_count += n_bytes;
   }
