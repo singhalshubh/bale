@@ -13,6 +13,7 @@
 
 #include "convey_impl.h"
 #include "private.h"
+#include <sys/time.h>
 
 
 #if MPP_NO_MIMD
@@ -97,6 +98,7 @@ static int
 tensor_push(convey_t* self, const void* item, int64_t pe)
 {
   tensor_t* tensor = (tensor_t*) self;
+  gettimeofday(tensor->porters[0]->start_push_time, NULL);
   route_t _route = tensor->router(tensor, pe);
   bool ok = porter_push(tensor->porters[0], _route.tag, item, _route.next);
   tensor->stats[convey_PUSHES] += ok;

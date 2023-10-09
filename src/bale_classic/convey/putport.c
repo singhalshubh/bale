@@ -9,7 +9,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <shmemx.h>
 #include "porter_impl.h"
 #include "private.h"
 
@@ -272,15 +271,6 @@ standard_send(porter_t* self, int dest, uint64_t level, size_t n_bytes,
 static bool
 standard_progress(porter_t* self, int dest)
 {
-  if (dest >= 0) {
-    uint64_t limit = ((UINT64_C(1) << self->abundance) - 1) >> 1;
-    channel_t* channel = &self->channels[dest];
-    if (channel->emitted <= channel->delivered + limit &&
-        channel->urgent <= channel->delivered &&
-        (self->waiting == NULL || self->waiting[dest] < PATIENCE))
-      return false;
-  }
-  mpp_quiet();
   return true;
 }
 
@@ -331,7 +321,7 @@ local_setup(porter_t* self)
 {
   put_porter_t* putp = (put_porter_t*) self;
   return putp_setup(self) &&
-    (!self->dynamic);
+    (!self->dynamic || nbrhood_init(putp, putp->extra));
 }
 
 static bool
@@ -339,27 +329,21 @@ local_send(porter_t* self, int dest, uint64_t level, size_t n_bytes,
            buffer_t* buffer, uint64_t signal)
 {
   const int rank = self->my_rank;
-  put_porter_t* putp = (put_porter_t*) self;
-  //const nbrhood_t* nbrhood = ((put_porter_t*)self)->extra;
-  const int pe = putp->friends[dest];
+  const nbrhood_t* nbrhood = ((put_porter_t*)self)->extra;
+
   // Need local address of remote receive buffers
   if (n_bytes > 0) {
-    //char* remote = nbrhood->buffer_ptrs[dest];
-    //uint64_t index = (rank << self->abundance) + level;
-    //remote += index * self->buffer_stride;
-    //memcpy(remote, buffer, n_bytes);
-    buffer_t* remote = porter_inbuf(self, rank, level);
-    shmemx_putmem_signal_nb(remote, buffer, n_bytes, (uint64_t*) &putp->received[rank], signal, pe, NULL);
-    FILE *fp = fopen("a.txt", "a");
-    fprintf(fp, "source: %d, pe: %d\n", shmem_my_pe(), pe);
-    fclose(fp);
+    char* remote = nbrhood->buffer_ptrs[dest];
+    uint64_t index = (rank << self->abundance) + level;
+    remote += index * self->buffer_stride;
+    memcpy(remote, buffer, n_bytes);
     self->send_count++;
     self->byte_count += n_bytes;
   }
 
   // Need local address of remote 'received' array
-  //atomic_uint64_t* notify = nbrhood->signal_ptrs[dest] + rank;
-  //*notify = signal;  // atomic_store
+  atomic_uint64_t* notify = nbrhood->signal_ptrs[dest] + rank;
+  *notify = signal;  // atomic_store
   return true;
 }
 
@@ -597,5 +581,8 @@ porter_new(int n, int32_t relative[n], int my_rank,
   if (methods != NULL)
     porter->_class_ = methods;
 
+
+  porter->push_aggregate_time = (struct timeval){0};
+  porter->yy = false;
   return porter;
 }

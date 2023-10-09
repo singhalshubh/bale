@@ -12,6 +12,8 @@
 
 #include "porter_impl.h"
 #include "private.h"
+#include <sys/time.h>
+
 
 #if PORTER_DEBUG
 static uint32_t
@@ -345,6 +347,10 @@ porter_push(porter_t* self, uint64_t tag, const void* item, int dest)
     }
     memcpy(area->next + tag_bytes, item, self->item_bytes);
     area->next += self->packet_bytes;
+    struct timeval y = NULL;
+    gettimeofday(&y, NULL);
+    timersub(y, self->start_push_time, y);
+    timeradd(self->push_aggregate_time, y, self->push_aggregate_time);
     if (area->next >= area->limit) {
       porter_close_buffer(self, dest, area);
       porter_try_send(self, dest);
@@ -409,6 +415,12 @@ porter_return(porter_t* self)
 bool
 porter_advance(porter_t* self, bool done)
 {
+  if(done && !self->yy) {
+    self->yy = true;
+    FILE *fp = fopen("tri-push", "a");
+    fprintf(fp, "pe: %d, %ld, %ld\n", shmem_my_pe(), self->push_aggregate_time.tv_sec, self->push_aggregate_time.tv_usec);
+    fclose(fp);
+  }
   if (!self->endgame) {
     if (self->waiting) {
       int phase = self->phase;
