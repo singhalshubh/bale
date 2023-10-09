@@ -347,7 +347,7 @@ porter_push(porter_t* self, uint64_t tag, const void* item, int dest)
     }
     memcpy(area->next + tag_bytes, item, self->item_bytes);
     area->next += self->packet_bytes;
-    struct timeval y = NULL;
+    struct timeval y;
     gettimeofday(&y, NULL);
     timersub(&y, self->start_push_time, &y);
     timeradd(self->push_aggregate_time, &y, self->push_aggregate_time);
