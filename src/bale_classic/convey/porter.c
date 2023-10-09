@@ -349,8 +349,8 @@ porter_push(porter_t* self, uint64_t tag, const void* item, int dest)
     area->next += self->packet_bytes;
     struct timeval y;
     gettimeofday(&y, NULL);
-    timersub(&y, self->start_push_time, &y);
-    timeradd(self->push_aggregate_time, &y, self->push_aggregate_time);
+    timersub(&y, &(self->start_push_time), &y);
+    timeradd(&(self->push_aggregate_time), &y, &(self->push_aggregate_time));
     if (area->next >= area->limit) {
       porter_close_buffer(self, dest, area);
       porter_try_send(self, dest);
