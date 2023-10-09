@@ -331,7 +331,7 @@ porter_setup(porter_t* self, size_t item_size)
 // number of such items with no space left over.
 bool
 porter_push(porter_t* self, uint64_t tag, const void* item, int dest)
-{
+{ gettimeofday(&(self->start_push_time), NULL);
   area_t* area = &self->send_areas[dest];
   bool room = (area->next < area->limit);
   if (room) {

@@ -98,8 +98,6 @@ static int
 tensor_push(convey_t* self, const void* item, int64_t pe)
 {
   tensor_t* tensor = (tensor_t*) self;
-  porter_t *porter = tensor->porters[0];
-  gettimeofday(&(porter->start_push_time), NULL);
   route_t _route = tensor->router(tensor, pe);
   bool ok = porter_push(tensor->porters[0], _route.tag, item, _route.next);
   tensor->stats[convey_PUSHES] += ok;
