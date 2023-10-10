@@ -10,6 +10,7 @@
 #ifndef CONVEY_IMPL_H
 #define CONVEY_IMPL_H
 
+#include <sys/time.h>
 #include "convey.h"
 
 // Negative error codes:
