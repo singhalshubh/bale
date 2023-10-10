@@ -188,7 +188,8 @@ tensor_unpull(convey_t* self)
 int
 tensor_advance(convey_t* self, bool done)
 {
-  if(done) {
+  if(done && !self->yy) {
+    self->yy = 1;
     FILE *fp = fopen("tri-push", "a");
     fprintf(fp, "pe: %d, %ld, %ld\n", shmem_my_pe(), self->push_time.tv_sec, self->push_time.tv_usec);
     fclose(fp);
