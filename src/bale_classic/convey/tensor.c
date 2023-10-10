@@ -98,13 +98,13 @@ static int
 tensor_push(convey_t* self, const void* item, int64_t pe)
 {
   tensor_t* tensor = (tensor_t*) self;
-  //struct timeval tt, rr;
-  //gettimeofday(&tt, NULL);
+  struct timeval tt, rr;
+  gettimeofday(&tt, NULL);
   route_t _route = tensor->router(tensor, pe);
   bool ok = porter_push(tensor->porters[0], _route.tag, item, _route.next);
-  // gettimeofday(&rr, NULL);
-  // timersub(&rr, &tt, &rr);
-  // timeradd(rr, &(tensor->))
+  gettimeofday(&rr, NULL);
+  timersub(&rr, &tt, &rr);
+  timeradd(&(self->push_time), &rr, &(self->push_time));
   tensor->stats[convey_PUSHES] += ok;
   return ok ? convey_OK : convey_FAIL;
 }
@@ -183,6 +183,13 @@ tensor_unpull(convey_t* self)
 int
 tensor_advance(convey_t* self, bool done)
 {
+  if(done && !self->yy) {
+    self->yy = 1;
+    FILE *fp = fopen("tri-push", "a");
+    fprintf(fp, "pe: %d, %ld, %ld\n", shmem_my_pe(), self->push_time.tv_sec, self->push_time.tv_usec);
+    fclose(fp);
+  }
+  
   tensor_t* tensor = (tensor_t*) self;
   tensor->stats[convey_ADVANCES]++;
   // We won't be called if state is already COMPLETE
