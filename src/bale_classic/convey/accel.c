@@ -220,13 +220,13 @@ pivot_f*
 tensor_select_pivot_mid(size_t tag_bytes, size_t item_bytes)
 {
   int index = item_index(item_bytes);
+  FILE *fp = fopen("hi", "a");
+  fprintf(fp, "%ld, %d\n", tag_bytes, index);
+  fclose(fp);
   if (tag_bytes != 1 && tag_bytes != 4)
     return NULL;
   if (index < 0)
     return (tag_bytes == 4) ? &pivot_mid_4_0 : &pivot_mid_1_0;
-  FILE *fp = fopen("hi", "a");
-  fprintf(fp, "hiu");
-  fclose(fp);
   return pivot_functions[index][tag_bytes == 4];
 }
 
