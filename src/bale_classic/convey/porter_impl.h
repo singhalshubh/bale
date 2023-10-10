@@ -17,6 +17,7 @@
 #include <stdint.h>
 #include "common.h"
 #include "porter.h"
+#include <sys/time.h>
 
 #if PORTER_DEBUG
 # define DEBUG_PRINT(...) mprint(MY_PROC, 0, __VA_ARGS__)
