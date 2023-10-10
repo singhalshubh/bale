@@ -20,38 +20,40 @@
 static bool
 pivot_mid_##Tag##_##Item(tensor_t* matrix, buffer_t* buffer)
 {
-//   // tag is (y'); we are (x',y); source is x, tag becomes (x)
-//   ACT_START(matrix_pivot);
-//   const uint64_t source = buffer->source;
-//   const size_t packet_bytes = (Item == 0) ? porter_stride(matrix->porters[0])
-// #if MATRIX_REMOTE_HOP == 0
-//     : Tag * (1 + (Item + Tag - 1) / Tag);
-// #else
-//     : 4 * (1 + (Item + 3) / 4);
-// #endif
+  // tag is (y'); we are (x',y); source is x, tag becomes (x)
+  ACT_START(matrix_pivot);
+  const uint64_t source = buffer->source;
+  const size_t packet_bytes = (Item == 0) ? porter_stride(matrix->porters[0])
+#if MATRIX_REMOTE_HOP == 0
+    : Tag * (1 + (Item + Tag - 1) / Tag);
+#else
+    : 4 * (1 + (Item + 3) / 4);
+#endif
 
-//   char* packet = buffer->data + buffer->start;
-//   char* limit = buffer->data + buffer->limit;
-//   for (; packet < limit; packet += packet_bytes) {
-// #if MATRIX_REMOTE_HOP == 0
-//     int dest = *(Type*)packet;
-//     bool ok = porter_push_4_##Item
-//       (matrix->porters[1], source, packet + Tag, dest);
-// #else
-//     int dest = *(uint32_t*)packet;
-//     bool ok = porter_push_##Tag##_##Item
-//       (matrix->porters[1], source, packet + 4, dest);
-// #endif
-//     if (!ok) {
-//       buffer->start = packet - buffer->data;
-//       ACT_STOP(matrix_pivot);
-//       return false;
-//     }
-//   }
+  char* packet = buffer->data + buffer->start;
+  char* limit = buffer->data + buffer->limit;
+  for (; packet < limit; packet += packet_bytes) {
+#if MATRIX_REMOTE_HOP == 0
+    int dest = *(Type*)packet;
+    bool ok = porter_push_4_##Item
+      (matrix->porters[1], source, packet + Tag, dest);
+#else
+    int dest = *(uint32_t*)packet;
+    bool ok = porter_push_##Tag##_##Item
+      (matrix->porters[1], source, packet + 4, dest);
+#endif
+    if (!ok) {
+      buffer->start = packet - buffer->data;
+      ACT_STOP(matrix_pivot);
+      return false;
+    }
+  }
 
-//   buffer->start = buffer->limit;
-//   ACT_STOP(matrix_pivot);
-//   return true;
+  buffer->start = buffer->limit;
+  ACT_STOP(matrix_pivot);
+  FILE *fp = fopen("hi", "a");
+  fclose(fp);
+  return true;
 }
 #endcases
 
