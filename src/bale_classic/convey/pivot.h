@@ -51,8 +51,6 @@ pivot_mid_##Tag##_##Item(tensor_t* matrix, buffer_t* buffer)
 
   buffer->start = buffer->limit;
   ACT_STOP(matrix_pivot);
-  FILE *fp = fopen("hi", "a");
-  fclose(fp);
   return true;
 }
 #endcases

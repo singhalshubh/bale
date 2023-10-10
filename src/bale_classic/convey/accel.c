@@ -224,6 +224,9 @@ tensor_select_pivot_mid(size_t tag_bytes, size_t item_bytes)
     return NULL;
   if (index < 0)
     return (tag_bytes == 4) ? &pivot_mid_4_0 : &pivot_mid_1_0;
+  FILE *fp = fopen("hi", "a");
+  fprintf(fp, "hiu");
+  fclose(fp);
   return pivot_functions[index][tag_bytes == 4];
 }
 
