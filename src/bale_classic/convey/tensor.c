@@ -411,6 +411,9 @@ matrix_new(convey_t* base, size_t capacity, size_t n_procs,
   matrix->tag_bytes[MATRIX_REMOTE_HOP] = t;
   matrix->tag_bytes[MATRIX_REMOTE_HOP ^ 1] = 4;
   matrix->div_local = _divbymul32_prep(n_local);
+  FILE *fp = fopen("hi", "a");
+  fprintf(fp, "hi");
+  fclose(fp);
   matrix->pivots[0] = tensor_select_pivot_mid(t, 0);
 
   for (int i = 0; i < n_local; i++)
