@@ -69,6 +69,7 @@ struct conveyor {
   uint64_t suppress;  // bitmask: errors to pass through
   int64_t state;
   struct timeval push_time;
+  struct timeval tt_time;
   int yy;
 };
 

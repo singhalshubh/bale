@@ -188,13 +188,16 @@ tensor_unpull(convey_t* self)
 int
 tensor_advance(convey_t* self, bool done)
 {
-  // if(done && !self->yy) {
-  //   self->yy = 1;
-  //   FILE *fp = fopen("tri-push", "a");
-  //   fprintf(fp, "pe: %d, %ld, %ld\n", shmem_my_pe(), self->push_time.tv_sec, self->push_time.tv_usec);
-  //   fclose(fp);
-  // }
+  if(done && !self->yy) {
+    self->yy = 1;
+    FILE *fp = fopen("tri-push", "a");
+    fprintf(fp, "pe: %d, %ld, %ld\n", shmem_my_pe(), self->push_time.tv_sec, self->push_time.tv_usec);
+    fclose(fp);
+  }
   
+  struct timeval tt, rr;
+  gettimeofday(&tt, NULL);
+
   tensor_t* tensor = (tensor_t*) self;
   tensor->stats[convey_ADVANCES]++;
   // We won't be called if state is already COMPLETE
@@ -216,12 +219,23 @@ tensor_advance(convey_t* self, bool done)
       buffer_t* buffer = porter_borrow(tensor->porters[k]);
       if (!buffer)
         break;
+      struct timeval tt1, rr1;
+      gettimeofday(&tt1, NULL);
       go = (tensor->pivots[k])(tensor, buffer);
+      gettimeofday(&rr1, NULL);
+      timersub(&rr1, &tt1, &rr1);
+      timeradd(&(self->tt_time), &rr, &(self->tt_time));
       porter_return(tensor->porters[k]);
       if (!go)
         break;
     }
   }
+
+  gettimeofday(&rr, NULL);
+  timersub(&rr, &tt, &rr);
+  timersub(&rr, &(self->tt_time) , &rr);
+  timeradd(&(self->push_time), &rr, &(self->push_time));
+
 
   if (done) {
     porter_t* porter = remote_porter(tensor);
@@ -425,9 +439,9 @@ matrix_new(convey_t* base, size_t capacity, size_t n_procs,
       : porter_new(n_local, friends[0], me[0], 4, capacity, n_buffers, alloc,
                options | porter_opt_LOCAL, CONVEY_SEND_0);
   }    
-  FILE *fp = fopen("debug.txt", "a");
-  fprintf(fp, "pe: %d, %d, %d\n", shmem_my_pe(), matrix->porters[0], matrix->porters[1]);
-  fclose(fp);
+  // FILE *fp = fopen("debug.txt", "a");
+  // fprintf(fp, "pe: %d, %d, %d\n", shmem_my_pe(), matrix->porters[0], matrix->porters[1]);
+  // fclose(fp);
 
   if (! (matrix->porters[0] && matrix->porters[1])) {
     for (int k = 0; k < 2; k++)

@@ -136,6 +136,7 @@ convey_begin(convey_t* self, size_t item_bytes, size_t align)
 {
   self->push_time = (struct timeval){0};
   self->yy = 0;
+  self->tt_time = (struct timeval){0};
   if (self == NULL)
     return convey_error_NULL;
   if (self->state != convey_DORMANT)
