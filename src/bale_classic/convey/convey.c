@@ -14,7 +14,8 @@
 #define PANIC(ERR) convey_panic(self, __func__, ERR)
 
 const char convey_version[] = PACKAGE_VERSION;
-
+#include <stdio.h>
+#include <stdlib.h>
 
 /*** Fast dispatch functions that don't necessarily check for errors ***/
 
@@ -204,7 +205,7 @@ convey_free(convey_t* self)
     fprintf(fp, "pe: %d, %ld, %ld\n", shmem_my_pe(), self->push_time.tv_sec, self->push_time.tv_usec);
     fclose(fp);
   }
-  
+
   if (self == NULL)
     return convey_OK;
   if (self->state != convey_COMPLETE && self->state != convey_DORMANT)
