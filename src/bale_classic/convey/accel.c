@@ -219,6 +219,7 @@ tensor_select_pull(int order, size_t tag_bytes, size_t item_bytes)
 pivot_f*
 tensor_select_pivot_mid(size_t tag_bytes, size_t item_bytes)
 {
+  int index = item_index(item_bytes);
   if (tag_bytes != 1 && tag_bytes != 4)
     return NULL;
   if (index < 0)
