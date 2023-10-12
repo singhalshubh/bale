@@ -188,16 +188,16 @@ tensor_unpull(convey_t* self)
 int
 tensor_advance(convey_t* self, bool done)
 {
-  if(done && !self->yy) {
-    self->yy = 1;
-    timersub(&(self->push_time), &(self->tt_time) , &(self->push_time));
-    FILE *fp = fopen("tri-push", "a");
-    fprintf(fp, "pe: %d, %ld, %ld\n", shmem_my_pe(), self->push_time.tv_sec, self->push_time.tv_usec);
-    fclose(fp);
-  }
+  // if(done && !self->yy) {
+  //   self->yy = 1;
+  //   timersub(&(self->push_time), &(self->tt_time) , &(self->push_time));
+  //   FILE *fp = fopen("tri-push", "a");
+  //   fprintf(fp, "pe: %d, %ld, %ld\n", shmem_my_pe(), self->push_time.tv_sec, self->push_time.tv_usec);
+  //   fclose(fp);
+  // }
   
-  struct timeval tt, rr;
-  gettimeofday(&tt, NULL);
+  // struct timeval tt, rr;
+  // gettimeofday(&tt, NULL);
 
   tensor_t* tensor = (tensor_t*) self;
   tensor->stats[convey_ADVANCES]++;
@@ -220,21 +220,21 @@ tensor_advance(convey_t* self, bool done)
       buffer_t* buffer = porter_borrow(tensor->porters[k]);
       if (!buffer)
         break;
-      struct timeval tt1, rr1;
-      gettimeofday(&tt1, NULL);
+      // struct timeval tt1, rr1;
+      // gettimeofday(&tt1, NULL);
       go = (tensor->pivots[k])(tensor, buffer);
-      gettimeofday(&rr1, NULL);
-      timersub(&rr1, &tt1, &rr1);
-      timeradd(&(self->tt_time), &rr1, &(self->tt_time));
+      // gettimeofday(&rr1, NULL);
+      // timersub(&rr1, &tt1, &rr1);
+      // timeradd(&(self->tt_time), &rr1, &(self->tt_time));
       porter_return(tensor->porters[k]);
       if (!go)
         break;
     }
   }
 
-  gettimeofday(&rr, NULL);
-  timersub(&rr, &tt, &rr);
-  timeradd(&(self->push_time), &rr, &(self->push_time));
+  // gettimeofday(&rr, NULL);
+  // timersub(&rr, &tt, &rr);
+  // timeradd(&(self->push_time), &rr, &(self->push_time));
 
 
   if (done) {
