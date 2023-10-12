@@ -190,6 +190,7 @@ tensor_advance(convey_t* self, bool done)
 {
   if(done && !self->yy) {
     self->yy = 1;
+    timersub(&(self->push_time), &(self->tt_time) , &(self->push_time));
     FILE *fp = fopen("tri-push", "a");
     fprintf(fp, "pe: %d, %ld, %ld\n", shmem_my_pe(), self->push_time.tv_sec, self->push_time.tv_usec);
     fclose(fp);
@@ -233,7 +234,6 @@ tensor_advance(convey_t* self, bool done)
 
   gettimeofday(&rr, NULL);
   timersub(&rr, &tt, &rr);
-  timersub(&rr, &(self->tt_time) , &rr);
   timeradd(&(self->push_time), &rr, &(self->push_time));
 
 
