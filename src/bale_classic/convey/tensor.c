@@ -224,7 +224,7 @@ tensor_advance(convey_t* self, bool done)
       go = (tensor->pivots[k])(tensor, buffer);
       gettimeofday(&rr1, NULL);
       timersub(&rr1, &tt1, &rr1);
-      timeradd(&(self->tt_time), &rr, &(self->tt_time));
+      timeradd(&(self->tt_time), &rr1, &(self->tt_time));
       porter_return(tensor->porters[k]);
       if (!go)
         break;
