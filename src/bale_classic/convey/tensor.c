@@ -151,15 +151,15 @@ tensor_upull(convey_t* self, int64_t* from)
 static int
 tensor_pull(convey_t* self, void* item, int64_t* from)
 {
-  struct timeval tt, rr;
-  gettimeofday(&tt, NULL);
+  // struct timeval tt, rr;
+  // gettimeofday(&tt, NULL);
   void* source = tensor_upull(self, from);
   if (source == NULL)
     return convey_FAIL;
   memcpy(item, source, self->item_size);
-  gettimeofday(&rr, NULL);
-  timersub(&rr, &tt, &rr);
-  timeradd(&(self->push_time), &rr, &(self->push_time));
+  // gettimeofday(&rr, NULL);
+  // timersub(&rr, &tt, &rr);
+  // timeradd(&(self->push_time), &rr, &(self->push_time));
   return convey_OK;
 }
 
@@ -188,12 +188,12 @@ tensor_unpull(convey_t* self)
 int
 tensor_advance(convey_t* self, bool done)
 {
-  if(done && !self->yy) {
-    self->yy = 1;
-    FILE *fp = fopen("tri-push", "a");
-    fprintf(fp, "pe: %d, %ld, %ld\n", shmem_my_pe(), self->push_time.tv_sec, self->push_time.tv_usec);
-    fclose(fp);
-  }
+  // if(done && !self->yy) {
+  //   self->yy = 1;
+  //   FILE *fp = fopen("tri-push", "a");
+  //   fprintf(fp, "pe: %d, %ld, %ld\n", shmem_my_pe(), self->push_time.tv_sec, self->push_time.tv_usec);
+  //   fclose(fp);
+  // }
   
   tensor_t* tensor = (tensor_t*) self;
   tensor->stats[convey_ADVANCES]++;
@@ -411,9 +411,6 @@ matrix_new(convey_t* base, size_t capacity, size_t n_procs,
   matrix->tag_bytes[MATRIX_REMOTE_HOP] = t;
   matrix->tag_bytes[MATRIX_REMOTE_HOP ^ 1] = 4;
   matrix->div_local = _divbymul32_prep(n_local);
-  FILE *fp = fopen("hi", "a");
-  fprintf(fp, "hi");
-  fclose(fp);
   matrix->pivots[0] = tensor_select_pivot_mid(t, 0);
 
   for (int i = 0; i < n_local; i++)
