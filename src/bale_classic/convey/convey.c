@@ -170,8 +170,7 @@ convey_advance(convey_t* self, bool done)
   int result = self->_class_->advance(self, done);
   gettimeofday(&rr, NULL);
   timersub(&rr, &tt, &rr);
-  if(done)
-    timeradd(&(self->push_time), &rr, &(self->push_time));
+  timeradd(&(self->push_time), &rr, &(self->push_time));
   if (result == convey_NEAR)
     self->state = convey_CLEANUP;
   else if (result == convey_DONE)
@@ -198,10 +197,13 @@ convey_reset(convey_t* self)
 int
 convey_free(convey_t* self)
 {
+  if(done && !self->yy) {
+    self->yy = 1;
+    timersub(&(self->push_time), &(self->tt_time) , &(self->push_time));
     FILE *fp = fopen("tri-push", "a");
     fprintf(fp, "pe: %d, %ld, %ld\n", shmem_my_pe(), self->push_time.tv_sec, self->push_time.tv_usec);
     fclose(fp);
-  
+  }
 
   if (self == NULL)
     return convey_OK;
