@@ -197,13 +197,10 @@ convey_reset(convey_t* self)
 int
 convey_free(convey_t* self)
 {
-  if(done && !self->yy) {
-    self->yy = 1;
-    timersub(&(self->push_time), &(self->tt_time) , &(self->push_time));
-    FILE *fp = fopen("tri-push", "a");
-    fprintf(fp, "pe: %d, %ld, %ld\n", shmem_my_pe(), self->push_time.tv_sec, self->push_time.tv_usec);
-    fclose(fp);
-  }
+
+  FILE *fp = fopen("tri-push", "a");
+  fprintf(fp, "pe: %d, %ld, %ld\n", shmem_my_pe(), self->push_time.tv_sec, self->push_time.tv_usec);
+  fclose(fp);
 
   if (self == NULL)
     return convey_OK;
