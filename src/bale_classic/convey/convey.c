@@ -164,15 +164,17 @@ convey_advance(convey_t* self, bool done)
     return PANIC(convey_error_STATE);
   // Rejecting a wrong 'done' value might cause deadlock
   done |= (self->state != convey_WORKING);
-
-  // struct timeval tt, rr;
-  // gettimeofday(&tt, NULL);
-  int result = self->_class_->advance(self, done);
-  // gettimeofday(&rr, NULL);
-  // timersub(&rr, &tt, &rr);
-  // if(done) {
-  //   timeradd(&(self->push_time), &rr, &(self->push_time));
-  // }
+  if(done) {
+    struct timeval tt, rr;
+    gettimeofday(&tt, NULL);
+    int result = self->_class_->advance(self, done);
+    gettimeofday(&rr, NULL);
+    timersub(&rr, &tt, &rr);
+    timeradd(&(self->push_time), &rr, &(self->push_time));
+  }
+  else {
+    int result = self->_class_->advance(self, done);
+  }
   if (result == convey_NEAR)
     self->state = convey_CLEANUP;
   else if (result == convey_DONE)
@@ -200,9 +202,9 @@ int
 convey_free(convey_t* self)
 {
 
-  // FILE *fp = fopen("tri-push", "a");
-  // fprintf(fp, "pe: %d, %ld, %ld\n", shmem_my_pe(), self->push_time.tv_sec, self->push_time.tv_usec);
-  // fclose(fp);
+  FILE *fp = fopen("tri-push", "a");
+  fprintf(fp, "pe: %d, %ld, %ld\n", shmem_my_pe(), self->push_time.tv_sec, self->push_time.tv_usec);
+  fclose(fp);
 
   if (self == NULL)
     return convey_OK;
