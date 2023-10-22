@@ -170,7 +170,9 @@ convey_advance(convey_t* self, bool done)
   int result = self->_class_->advance(self, done);
   gettimeofday(&rr, NULL);
   timersub(&rr, &tt, &rr);
-  timeradd(&(self->push_time), &rr, &(self->push_time));
+  if(done) {
+    timeradd(&(self->push_time), &rr, &(self->push_time));
+  }
   if (result == convey_NEAR)
     self->state = convey_CLEANUP;
   else if (result == convey_DONE)
