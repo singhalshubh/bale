@@ -585,7 +585,7 @@ porter_new(int n, int32_t relative[n], int my_rank,
     porter->_class_ = methods;
 
 
-  //porter->push_aggregate_time = (struct timeval){0};
-  //porter->yy = false;
+  porter->push_aggregate_time = (struct timeval){0};
+  porter->yy = false;
   return porter;
 }
