@@ -100,7 +100,7 @@ tensor_push(convey_t* self, const void* item, int64_t pe)
   tensor_t* tensor = (tensor_t*) self;
   // struct timeval tt, rr;
   // gettimeofday(&tt, NULL);
-  // route_t _route = tensor->router(tensor, pe);
+  route_t _route = tensor->router(tensor, pe);
   bool ok = porter_push(tensor->porters[0], _route.tag, item, _route.next);
   // gettimeofday(&rr, NULL);
   // timersub(&rr, &tt, &rr);
