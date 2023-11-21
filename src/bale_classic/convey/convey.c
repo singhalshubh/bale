@@ -411,7 +411,9 @@ convey_parameters(size_t max_bytes, size_t n_local,
         capacity = (capacity + 1) >> 1;
       }
     }
-
+  FILE *fp = fopen("debug.txt", "a");
+  fprintf(fp, "%ld\n", capacity);
+  fclose(fp);
   *capacity_ = capacity;
   *n_buffers_ = n_buffers;
   *sync_ = sync;
