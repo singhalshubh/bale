@@ -14,8 +14,7 @@
 #define PANIC(ERR) convey_panic(self, __func__, ERR)
 
 const char convey_version[] = PACKAGE_VERSION;
-#include <stdio.h>
-#include <stdlib.h>
+
 
 /*** Fast dispatch functions that don't necessarily check for errors ***/
 
@@ -135,9 +134,6 @@ convey_no_epull(convey_t* self, convey_item_t* result)
 int
 convey_begin(convey_t* self, size_t item_bytes, size_t align)
 {
-  self->push_time = (struct timeval){0};
-  self->yy = 0;
-  self->tt_time = (struct timeval){0};
   if (self == NULL)
     return convey_error_NULL;
   if (self->state != convey_DORMANT)
@@ -164,8 +160,9 @@ convey_advance(convey_t* self, bool done)
     return PANIC(convey_error_STATE);
   // Rejecting a wrong 'done' value might cause deadlock
   done |= (self->state != convey_WORKING);
-  int result;
-  result = self->_class_->advance(self, done);
+
+  int result = self->_class_->advance(self, done);
+
   if (result == convey_NEAR)
     self->state = convey_CLEANUP;
   else if (result == convey_DONE)

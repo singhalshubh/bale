@@ -17,7 +17,6 @@
 #include <stdint.h>
 #include "common.h"
 #include "porter.h"
-#include <sys/time.h>
 
 #if PORTER_DEBUG
 # define DEBUG_PRINT(...) mprint(MY_PROC, 0, __VA_ARGS__)
@@ -133,9 +132,6 @@ struct porter {
   porter_codata_t* codata;      // non-NULL if this porter supports compression
   // Embedded allocator
   convey_alc8r_t alloc;
-  struct timeval push_aggregate_time;
-  struct timeval start_push_time;
-  int yy;
 };
 
 // Functions in porter.c for use by subclasses and optimized functions

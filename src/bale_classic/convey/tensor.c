@@ -13,7 +13,6 @@
 
 #include "convey_impl.h"
 #include "private.h"
-#include <sys/time.h>
 
 
 #if MPP_NO_MIMD
@@ -98,13 +97,8 @@ static int
 tensor_push(convey_t* self, const void* item, int64_t pe)
 {
   tensor_t* tensor = (tensor_t*) self;
-  // struct timeval tt, rr;
-  // gettimeofday(&tt, NULL);
   route_t _route = tensor->router(tensor, pe);
   bool ok = porter_push(tensor->porters[0], _route.tag, item, _route.next);
-  // gettimeofday(&rr, NULL);
-  // timersub(&rr, &tt, &rr);
-  // timeradd(&(self->push_time), &rr, &(self->push_time));
   tensor->stats[convey_PUSHES] += ok;
   return ok ? convey_OK : convey_FAIL;
 }
@@ -151,15 +145,10 @@ tensor_upull(convey_t* self, int64_t* from)
 static int
 tensor_pull(convey_t* self, void* item, int64_t* from)
 {
-  // struct timeval tt, rr;
-  // gettimeofday(&tt, NULL);
   void* source = tensor_upull(self, from);
   if (source == NULL)
     return convey_FAIL;
   memcpy(item, source, self->item_size);
-  // gettimeofday(&rr, NULL);
-  // timersub(&rr, &tt, &rr);
-  // timeradd(&(self->push_time), &rr, &(self->push_time));
   return convey_OK;
 }
 
@@ -188,17 +177,6 @@ tensor_unpull(convey_t* self)
 int
 tensor_advance(convey_t* self, bool done)
 {
-  // if(done && !self->yy) {
-  //   self->yy = 1;
-  //   timersub(&(self->push_time), &(self->tt_time) , &(self->push_time));
-  //   FILE *fp = fopen("tri-push", "a");
-  //   fprintf(fp, "pe: %d, %ld, %ld\n", shmem_my_pe(), self->push_time.tv_sec, self->push_time.tv_usec);
-  //   fclose(fp);
-  // }
-  
-  // struct timeval tt, rr;
-  // gettimeofday(&tt, NULL);
-
   tensor_t* tensor = (tensor_t*) self;
   tensor->stats[convey_ADVANCES]++;
   // We won't be called if state is already COMPLETE
@@ -220,22 +198,12 @@ tensor_advance(convey_t* self, bool done)
       buffer_t* buffer = porter_borrow(tensor->porters[k]);
       if (!buffer)
         break;
-      // struct timeval tt1, rr1;
-      // gettimeofday(&tt1, NULL);
       go = (tensor->pivots[k])(tensor, buffer);
-      // gettimeofday(&rr1, NULL);
-      // timersub(&rr1, &tt1, &rr1);
-      // timeradd(&(self->tt_time), &rr1, &(self->tt_time));
       porter_return(tensor->porters[k]);
       if (!go)
         break;
     }
   }
-
-  // gettimeofday(&rr, NULL);
-  // timersub(&rr, &tt, &rr);
-  // timeradd(&(self->push_time), &rr, &(self->push_time));
-
 
   if (done) {
     porter_t* porter = remote_porter(tensor);
@@ -250,7 +218,6 @@ int
 tensor_begin(convey_t* self, size_t item_size, size_t align)
 {
   tensor_t* tensor = (tensor_t*) self;
-  self->yy = false;
   if (!mpp_comm_is_equal(MPP_COMM_CURR, tensor->comm))
     return convey_error_TEAM;
   if (item_size == 0)
@@ -440,9 +407,6 @@ matrix_new(convey_t* base, size_t capacity, size_t n_procs,
       : porter_new(n_local, friends[0], me[0], 4, capacity, n_buffers, alloc,
                options | porter_opt_LOCAL, CONVEY_SEND_0);
   }    
-  // FILE *fp = fopen("debug.txt", "a");
-  // fprintf(fp, "pe: %d, %d, %d\n", shmem_my_pe(), matrix->porters[0], matrix->porters[1]);
-  // fclose(fp);
 
   if (! (matrix->porters[0] && matrix->porters[1])) {
     for (int k = 0; k < 2; k++)

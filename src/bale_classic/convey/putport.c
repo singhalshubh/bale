@@ -154,9 +154,6 @@ putp_borrow(porter_t* self)
   put_porter_t* putp = (put_porter_t*) self;
   if (putp->i_pending == putp->n_pending)
     putp_scan_receipts(putp);
-  // FILE *fp = fopen("debug.txt", "a");
-  // fprintf(fp, " pe: %d, self: %d, %d, %d \n", shmem_my_pe(), self, putp->i_pending, putp->n_pending);
-  // fclose(fp);
   int i = putp->i_pending;
   if (i == putp->n_pending)
     return NULL;
@@ -584,8 +581,5 @@ porter_new(int n, int32_t relative[n], int my_rank,
   if (methods != NULL)
     porter->_class_ = methods;
 
-
-  porter->push_aggregate_time = (struct timeval){0};
-  porter->yy = false;
   return porter;
 }

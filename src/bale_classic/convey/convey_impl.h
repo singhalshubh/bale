@@ -10,7 +10,6 @@
 #ifndef CONVEY_IMPL_H
 #define CONVEY_IMPL_H
 
-#include <sys/time.h>
 #include "convey.h"
 
 // Negative error codes:
@@ -68,9 +67,6 @@ struct conveyor {
   size_t n_procs;
   uint64_t suppress;  // bitmask: errors to pass through
   int64_t state;
-  struct timeval push_time;
-  struct timeval tt_time;
-  int yy;
 };
 
 int convey_checked_push(convey_t* self, const void* item, int64_t pe);

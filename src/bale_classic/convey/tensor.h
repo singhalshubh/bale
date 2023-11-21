@@ -41,9 +41,6 @@ struct tensor {
   size_t max_bytes;
   mpp_comm_t comm;
   int64_t stats[convey_imp_N_STATS];
-  struct timeval advance_time;
-  struct timeval advance_time_done;
-  struct timeval pull_time;
 };
 
 static inline int64_t
