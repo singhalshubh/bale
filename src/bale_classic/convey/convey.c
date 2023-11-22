@@ -411,6 +411,7 @@ convey_parameters(size_t max_bytes, size_t n_local,
         capacity = (capacity + 1) >> 1;
       }
     }
+
   *capacity_ = capacity;
   *n_buffers_ = n_buffers;
   *sync_ = sync;

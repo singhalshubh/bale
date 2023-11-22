@@ -333,9 +333,6 @@ porter_push(porter_t* self, uint64_t tag, const void* item, int dest)
   area_t* area = &self->send_areas[dest];
   bool room = (area->next < area->limit);
   if (room) {
-    FILE *fp = fopen("debug.txt", "a");
-  fprintf(fp, "Area: %ld\n", area->limit - area->next);
-  fclose(fp);
     DEBUG_PRINT("push  %08x to %u\n", *(uint32_t*)item, dest);
     _prefetch_x(area->next + 96);
     size_t tag_bytes = self->tag_bytes;
