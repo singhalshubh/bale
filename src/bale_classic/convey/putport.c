@@ -428,8 +428,7 @@ nonblock_send(porter_t* self, int dest, uint64_t level, size_t n_bytes,
     const int pe = putp->friends[dest];
     buffer_t* remote = porter_inbuf(self, rank, level);
     DEBUG_PRINT("%zu bytes to %d, signal = %lu\n", buffer->limit - buffer->start, pe, signal);
-    shmem_putmem(remote, buffer, n_bytes, pe);
-    shmem_put64((uint64_t*) &putp->received[rank], &signal, 1, pe);
+    shmem_putmem_nbi(remote, buffer, n_bytes, pe);
     self->send_count++;
     self->byte_count += n_bytes;
   }
@@ -437,8 +436,8 @@ nonblock_send(porter_t* self, int dest, uint64_t level, size_t n_bytes,
     DEBUG_PRINT("0 bytes to %d, signal = %lu\n", putp->friends[dest], signal);
   }
 
-  // uint64_t* inflight = putp->extra;
-  // inflight[dest] = signal;
+  uint64_t* inflight = putp->extra;
+  inflight[dest] = signal;
   return false;
 }
 
@@ -448,36 +447,36 @@ nonblock_progress(porter_t* self, int dest)
   // Decide whether it's time to force delivery and send signals.
   // Do this when we have emitted half of our buffers on this channel.
   // [1 buffer => diff > 0; 2 buffers => diff > 0; 4 buffers => diff > 1]
-  // if (dest >= 0) {
-  //   uint64_t limit = ((UINT64_C(1) << self->abundance) - 1) >> 1;
-  //   channel_t* channel = &self->channels[dest];
-  //   if (channel->emitted <= channel->delivered + limit &&
-  //       channel->urgent <= channel->delivered &&
-  //       (self->waiting == NULL || self->waiting[dest] < PATIENCE))
-  //     return false;
-  // }
+  if (dest >= 0) {
+    uint64_t limit = ((UINT64_C(1) << self->abundance) - 1) >> 1;
+    channel_t* channel = &self->channels[dest];
+    if (channel->emitted <= channel->delivered + limit &&
+        channel->urgent <= channel->delivered &&
+        (self->waiting == NULL || self->waiting[dest] < PATIENCE))
+      return false;
+  }
 
-  // // Force delivery of all puts
-  // mpp_quiet();
-  // self->sync_count++;
+  // Force delivery of all puts
+  mpp_quiet();
+  self->sync_count++;
 
-  // const int n = self->n_ranks;
-  // const int rank = self->my_rank;
-  // put_porter_t* putp = (put_porter_t*) self;
-  // uint64_t* inflight = putp->extra;
+  const int n = self->n_ranks;
+  const int rank = self->my_rank;
+  put_porter_t* putp = (put_porter_t*) self;
+  uint64_t* inflight = putp->extra;
 
-  // // Update delivery information and send signals
-  // for (dest = 0; dest < n; dest++) {
-  //   uint64_t signal = inflight[dest];
-  //   if (signal) {
-  //     channel_t* channel = &self->channels[dest];
-  //     porter_record_delivery(self, dest, channel->emitted);
-  //     int pe = putp->friends[dest];
-  //     shmem_put64((uint64_t*) &putp->received[rank], &signal, 1, pe);
-  //     DEBUG_PRINT("sent signal %lu to %d\n", signal, pe);
-  //     inflight[dest] = 0;
-  //   }
-  // }
+  // Update delivery information and send signals
+  for (dest = 0; dest < n; dest++) {
+    uint64_t signal = inflight[dest];
+    if (signal) {
+      channel_t* channel = &self->channels[dest];
+      porter_record_delivery(self, dest, channel->emitted);
+      int pe = putp->friends[dest];
+      shmem_put64((uint64_t*) &putp->received[rank], &signal, 1, pe);
+      DEBUG_PRINT("sent signal %lu to %d\n", signal, pe);
+      inflight[dest] = 0;
+    }
+  }
   return true;
 }
 
