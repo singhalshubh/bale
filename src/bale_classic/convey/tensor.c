@@ -10,7 +10,6 @@
 #include <inttypes.h>
 #include <stdlib.h>
 #include <string.h>
-#include <limits>
 
 #include "convey_impl.h"
 #include "private.h"
@@ -106,6 +105,8 @@ tensor_push(convey_t* self, const void* item, int64_t pe)
 
 static void*
 tensor_modified_upull(convey_t* self, int64_t* from, int order) {
+    tensor_t* tensor = (tensor_t*) self;
+    buffer_t* buffer = tensor->buffer;
     if(buffer && buffer->start == buffer->limit) {
       porter_return(tensor->porters[order]);
       buffer = NULL;
@@ -128,7 +129,7 @@ tensor_modified_upull(convey_t* self, int64_t* from, int order) {
   #endif
         tag = *(uint32_t*)packet;
       *from = origin_from_tag(tensor, order, tag, source);
-      *(uint32_t*) packet = std::numeric_limits<int32_t>::max(); 
+      *(uint32_t*) packet = 2147483647;
       if(*from == shmem_my_pe()) {
         return packet + tensor->item_offset;
       }

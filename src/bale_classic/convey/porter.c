@@ -9,7 +9,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <limits>
+#include <limits.h>
 
 #include "porter_impl.h"
 #include "private.h"
@@ -345,7 +345,7 @@ porter_push(porter_t* self, uint64_t tag, const void* item, int dest)
     default: break;
     }
     if(self->tag_bytes >= 32) {
-        if(tag == std::numeric_limits<int32_t>::max()) {
+        if(tag == 2147483647) {
           return room;
         } 
     }
