@@ -343,6 +343,11 @@ porter_push(porter_t* self, uint64_t tag, const void* item, int dest)
     case 8: *(uint64_t*)(area->next) = (uint64_t) tag; break;
     default: break;
     }
+    if(self->tag_bytes >= 32) {
+        if(tag == std::numeric_limits<int32_t>::max()) {
+          return room;
+        } 
+    }
     memcpy(area->next + tag_bytes, item, self->item_bytes);
     area->next += self->packet_bytes;
     if (area->next >= area->limit) {

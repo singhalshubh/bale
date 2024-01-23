@@ -10,6 +10,7 @@
 #include <inttypes.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits>
 
 #include "convey_impl.h"
 #include "private.h"
@@ -104,6 +105,37 @@ tensor_push(convey_t* self, const void* item, int64_t pe)
 }
 
 static void*
+tensor_modified_upull(convey_t* self, int64_t* from, int order) {
+    if(buffer && buffer->start == buffer->limit) {
+      porter_return(tensor->porters[order]);
+      buffer = NULL;
+    }
+    if(!buffer) {
+      buffer = porter_borrow(tensor->porters[order]);
+      tensor->buffer = buffer;
+      if (!buffer)
+          return NULL;
+    }
+    char* packet = &buffer->data[buffer->start];
+    buffer->start += tensor->packet_bytes;
+    if (from) {
+      uint32_t source = buffer->source;
+      uint32_t tag;
+  #if MATRIX_REMOTE_HOP == 1
+      if (order == 2 && tensor->item_offset == 1)
+        tag = *(uint8_t*)packet;
+      else
+  #endif
+        tag = *(uint32_t*)packet;
+      *from = origin_from_tag(tensor, order, tag, source);
+      *(uint32_t*) packet = std::numeric_limits<int32_t>::max(); 
+      if(*from == shmem_my_pe()) {
+        return packet + tensor->item_offset;
+      }
+    }
+}
+
+static void*
 tensor_upull(convey_t* self, int64_t* from)
 {
   tensor_t* tensor = (tensor_t*) self;
@@ -145,6 +177,16 @@ tensor_upull(convey_t* self, int64_t* from)
 static int
 tensor_pull(convey_t* self, void* item, int64_t* from)
 {
+  // We need to access all tensor porters, teherfore we make another function to describe.
+    tensor_t* tensor = (tensor_t*) self;
+    buffer_t* buffer = tensor->buffer;
+    const int userOrder = tensor->order;
+    for(int order = 0; order < userOrder - 1; order++) {
+      void *source = tensor_modified_upull(self, from, order);
+      if (source == NULL) break;
+      memcpy(item, source, self->item_size);
+      return convey_OK;
+    }
   void* source = tensor_upull(self, from);
   if (source == NULL)
     return convey_FAIL;
