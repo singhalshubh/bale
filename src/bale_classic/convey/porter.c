@@ -9,6 +9,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <limits>
 
 #include "porter_impl.h"
 #include "private.h"
